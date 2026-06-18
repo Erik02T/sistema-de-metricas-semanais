@@ -1,23 +1,71 @@
+'use client'
+
+import { useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { KanjiField } from '@/components/kanji-field'
+import { Sidebar, MobileNav, type SectionId } from '@/components/sidebar'
+import { NorthStar } from '@/components/sections/north-star'
+import { Scorecard } from '@/components/sections/scorecard'
+import { Schedule } from '@/components/sections/schedule'
+import { Japanese } from '@/components/sections/japanese'
+import { Programming } from '@/components/sections/programming'
+import { Review } from '@/components/sections/review'
+import { computeScores, usePOS } from '@/lib/store'
+
+const SECTIONS: Record<SectionId, React.ComponentType> = {
+  'north-star': NorthStar,
+  scorecard: Scorecard,
+  schedule: Schedule,
+  japanese: Japanese,
+  programming: Programming,
+  review: Review,
+}
+
 export default function Page() {
+  const [active, setActive] = useState<SectionId>('north-star')
+  const results = usePOS((s) => s.results)
+  const { final } = computeScores(results)
+  const Section = SECTIONS[active]
+
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  })
+
   return (
-    <main className="relative flex min-h-screen items-center justify-center bg-[color:light-dark(#fff,#000)] text-[color:light-dark(#000,#fff)]">
-      <svg
-        aria-hidden="true"
-        className="size-20"
-        fill="none"
-        viewBox="0 0 20 20"
-        xmlns="http://www.w3.org/2000/svg"
-        stroke="currentColor"
-        strokeWidth="0.5"
-      >
-        <path
-          d="M14.2 14.2H17V6.9375C17 4.76288 15.2371 3 13.0625 3H5.8V5.8M14.2 14.2V7.79063L7.79062 14.2H14.2ZM14.2 14.2V17H6.9375C4.76288 17 3 15.2371 3 13.0625V5.8H5.8M5.8 5.8V12.2313L12.2313 5.8H5.8Z"
-          strokeLinejoin="round"
-        />
-      </svg>
-      <p className="absolute left-1/2 top-[calc(50%+56px)] -translate-x-1/2 whitespace-nowrap text-sm font-medium text-muted-foreground">
-        Your v0 generation will show here.
-      </p>
-    </main>
+    <div className="relative flex min-h-svh">
+      <KanjiField />
+      <Sidebar active={active} onChange={setActive} finalScore={final} />
+
+      <div className="relative z-10 flex min-w-0 flex-1 flex-col">
+        <MobileNav active={active} onChange={setActive} />
+
+        <header className="hidden items-center justify-between px-8 pt-8 lg:flex">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <span className="font-jp-serif text-primary">今日</span>
+            {today}
+          </div>
+          <div className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-sm">
+            <span className="h-2 w-2 rounded-full bg-success" />
+            <span className="text-muted-foreground">Focus mode · 8-week sprint</span>
+          </div>
+        </header>
+
+        <main className="mx-auto w-full max-w-5xl px-5 py-8 sm:px-8">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={active}
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <Section />
+            </motion.div>
+          </AnimatePresence>
+        </main>
+      </div>
+    </div>
   )
 }
