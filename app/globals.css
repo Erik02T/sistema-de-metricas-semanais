@@ -29,6 +29,8 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
+  --color-sakura: var(--sakura);
+  --color-sakura-soft: var(--sakura-soft);
   --color-gold: var(--gold);
   --color-aoi: var(--aoi);
   --color-success: var(--success);
@@ -51,45 +53,49 @@
 .dark {
   color-scheme: dark;
 
-  /* Sumi black foundation */
-  --background: oklch(0.155 0.006 300);
-  --foreground: oklch(0.95 0.004 290);
+  /* Sumi 墨 — black ink foundation */
+  --background: oklch(0.145 0.004 25);
+  --foreground: oklch(0.965 0.003 60);
 
-  --card: oklch(0.195 0.007 300);
-  --card-foreground: oklch(0.95 0.004 290);
+  --card: oklch(0.185 0.005 25);
+  --card-foreground: oklch(0.965 0.003 60);
 
-  --popover: oklch(0.185 0.008 300);
-  --popover-foreground: oklch(0.95 0.004 290);
+  --popover: oklch(0.175 0.006 25);
+  --popover-foreground: oklch(0.965 0.003 60);
 
-  /* Torii red */
-  --primary: oklch(0.585 0.205 26);
-  --primary-foreground: oklch(0.98 0.01 30);
+  /* Hinomaru 日の丸 — the red sun of the flag */
+  --primary: oklch(0.575 0.214 25);
+  --primary-foreground: oklch(0.99 0.01 30);
 
-  --secondary: oklch(0.255 0.008 300);
-  --secondary-foreground: oklch(0.95 0.004 290);
+  --secondary: oklch(0.245 0.006 25);
+  --secondary-foreground: oklch(0.965 0.003 60);
 
-  --muted: oklch(0.245 0.007 300);
-  --muted-foreground: oklch(0.68 0.012 290);
+  --muted: oklch(0.235 0.005 25);
+  --muted-foreground: oklch(0.7 0.01 40);
 
-  --accent: oklch(0.3 0.02 25);
-  --accent-foreground: oklch(0.96 0.01 30);
+  --accent: oklch(0.3 0.05 12);
+  --accent-foreground: oklch(0.97 0.01 20);
 
-  --destructive: oklch(0.62 0.21 22);
+  --destructive: oklch(0.6 0.212 22);
 
   --border: oklch(1 0 0 / 9%);
   --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.585 0.205 26);
+  --ring: oklch(0.575 0.214 25);
 
-  /* Accent palette */
-  --gold: oklch(0.82 0.12 86);
-  --aoi: oklch(0.7 0.13 232);
+  /* Sakura 桜 — cherry blossom pink */
+  --sakura: oklch(0.8 0.09 8);
+  --sakura-soft: oklch(0.88 0.05 6);
+
+  /* Legacy accents remapped into the red/pink/white family */
+  --gold: oklch(0.88 0.05 6);
+  --aoi: oklch(0.8 0.09 8);
   --success: oklch(0.72 0.15 150);
 
-  --chart-1: oklch(0.585 0.205 26);
-  --chart-2: oklch(0.82 0.12 86);
-  --chart-3: oklch(0.7 0.13 232);
-  --chart-4: oklch(0.72 0.15 150);
-  --chart-5: oklch(0.55 0.02 300);
+  --chart-1: oklch(0.575 0.214 25);
+  --chart-2: oklch(0.8 0.09 8);
+  --chart-3: oklch(0.88 0.05 6);
+  --chart-4: oklch(0.965 0.003 60);
+  --chart-5: oklch(0.45 0.12 18);
 
   --radius: 0.75rem;
 }
@@ -135,4 +141,33 @@
 }
 .animate-float-slow {
   animation: float-slow 9s ease-in-out infinite;
+}
+
+/* Sakura petals drifting down */
+@keyframes petal-fall {
+  0% {
+    transform: translateY(-8vh) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.9;
+  }
+  90% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(108vh) translateX(8vw) rotate(320deg);
+    opacity: 0;
+  }
+}
+.animate-petal {
+  animation: petal-fall linear infinite;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
