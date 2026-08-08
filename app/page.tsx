@@ -12,7 +12,7 @@ import { Japanese } from '@/components/sections/japanese'
 import { Programming } from '@/components/sections/programming'
 import { Review } from '@/components/sections/review'
 
-const SECTIONS: Record<SectionId, React.ComponentType> = {
+const SECTIONS: Record<SectionId, React.ComponentType<{ onNavigate: (id: SectionId) => void }>> = {
   dashboard: Dashboard,
   metrics: Metrics,
   schedule: Schedule,
@@ -60,7 +60,7 @@ export default function Page() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             >
-              <Section />
+              <Section onNavigate={setActive} />
             </motion.div>
           </AnimatePresence>
         </main>
