@@ -1,21 +1,32 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useEffect, useState } from 'react'
+
+interface Petal {
+  id: number
+  left: number
+  size: number
+  duration: number
+  delay: number
+}
 
 // Lightweight CSS-only cherry blossom petals drifting down the whole screen.
+// Generated only on the client (after mount) so the random values never cause
+// a server/client hydration mismatch.
 export function SakuraPetals({ count = 14 }: { count?: number }) {
-  const petals = useMemo(
-    () =>
+  const [petals, setPetals] = useState<Petal[]>([])
+
+  useEffect(() => {
+    setPetals(
       Array.from({ length: count }, (_, i) => ({
         id: i,
         left: Math.random() * 100,
         size: 8 + Math.random() * 10,
         duration: 10 + Math.random() * 12,
         delay: Math.random() * 12,
-        sway: 0.4 + Math.random() * 0.6,
       })),
-    [count],
-  )
+    )
+  }, [count])
 
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
