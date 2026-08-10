@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { KanjiField } from '@/components/kanji-field'
 import { SakuraPetals } from '@/components/sakura-petals'
@@ -25,11 +25,18 @@ export default function Page() {
   const [active, setActive] = useState<SectionId>('dashboard')
   const Section = SECTIONS[active]
 
-  const today = new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  })
+  // Rendered only after mount so the locale/timezone date can't cause a
+  // server/client hydration mismatch.
+  const [today, setToday] = useState('')
+  useEffect(() => {
+    setToday(
+      new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+      }),
+    )
+  }, [])
 
   return (
     <div className="relative flex min-h-svh">
