@@ -299,6 +299,7 @@ function IssueEditor({
 
   return (
     <Modal
+      open
       title={draft.title ? 'Edit issue' : 'New issue'}
       kanji="工"
       onClose={onClose}
