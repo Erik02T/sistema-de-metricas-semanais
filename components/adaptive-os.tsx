@@ -16,9 +16,10 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { FocusWorkspace } from '@/components/focus-workspace'
 import { HistoryPanel, ReviewPanel, ScorecardPanel } from '@/components/analytics-panels'
+import { SettingsPanel } from '@/components/settings-panel'
 
 const NAV = [
-  ['dashboard', 'Dashboard'], ['objectives', 'Objectives'], ['week', 'This Week'], ['today', 'Today'], ['blocks', 'Blocks'], ['scorecard', 'Scorecard'], ['history', 'History'], ['review', 'Review'],
+  ['dashboard', 'Dashboard'], ['objectives', 'Objectives'], ['week', 'This Week'], ['today', 'Today'], ['blocks', 'Blocks'], ['scorecard', 'Scorecard'], ['history', 'History'], ['review', 'Review'], ['settings', 'Settings'],
 ] as const
 const AREAS: { id: AreaId; label: string; tone: string }[] = [
   { id: 'japanese', label: 'Japanese', tone: 'bg-sakura/15 text-sakura' },
@@ -68,6 +69,7 @@ export function AdaptiveOS() {
           {active === 'scorecard' && <ScorecardPanel />}
           {active === 'history' && <HistoryPanel />}
           {active === 'review' && <ReviewPanel />}
+          {active === 'settings' && <SettingsPanel />}
         </main>
       </div>
     </div>
