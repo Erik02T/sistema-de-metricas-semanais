@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { FocusWorkspace } from '@/components/focus-workspace'
 
 const NAV = [
   ['dashboard', 'Dashboard'], ['objectives', 'Objectives'], ['week', 'This Week'], ['today', 'Today'], ['blocks', 'Blocks'], ['scorecard', 'Scorecard'], ['history', 'History'], ['review', 'Review'],
@@ -61,7 +62,7 @@ export function AdaptiveOS() {
           {active === 'dashboard' && <Dashboard state={state} score={score} health={health} plan={plan} recommendations={recommendations} onNavigate={setActive} />}
           {active === 'objectives' && <Objectives state={state} />}
           {active === 'week' && <Week state={state} onNavigate={setActive} />}
-          {active === 'today' && <Today context={context} updateContext={updateContext} recommendations={recommendations} state={state} />}
+          {active === 'today' && <><PageIntro eyebrow="Right now" title="Today" description="Shape the session around your real capacity, then record the result instead of only checking a box." /><FocusWorkspace /></>}
           {active === 'blocks' && <Blocks state={state} />}
           {active === 'scorecard' && <Scorecard state={state} score={score} health={health} />}
           {active === 'history' && <History state={state} />}
