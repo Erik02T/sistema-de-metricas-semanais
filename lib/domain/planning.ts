@@ -1,4 +1,4 @@
-import type { AdaptiveTask, DailyContext, EnergyLevel, Recommendation, Scorecard } from './types'
+import type { AdaptiveTask, DailyContext, EnergyLevel, Recommendation, Scorecard, WeeklyGoal, Objective, WeekHealth } from './types'
 
 const ENERGY_RANK: Record<EnergyLevel, number> = { low: 1, medium: 2, high: 3 }
 
@@ -31,6 +31,20 @@ function buildReason(task: AdaptiveTask, context: DailyContext) {
 
 export function buildDailyPlan(tasks: AdaptiveTask[], context: DailyContext) {
   return getRecommendedTasks(tasks, context).filter((item) => item.score > 0).slice(0, 3)
+}
+
+export function calculateGoalsHealth(goals: WeeklyGoal[], tasks: AdaptiveTask[], objectives: Objective[], weekId: string): WeekHealth {
+  const weekGoals = goals.filter((goal) => goal.weekId === weekId)
+  const completedGoals = weekGoals.filter((goal) => goal.status === 'completed').length
+  const progress = weekGoals.length ? Math.round(weekGoals.reduce((sum, goal) => sum + Math.max(0, Math.min(100, goal.progress)), 0) / weekGoals.length) : 0
+  const plannedMinutes = weekGoals.reduce((sum, goal) => sum + goal.targetMinutes, 0)
+  const actualMinutes = weekGoals.reduce((sum, goal) => sum + goal.actualMinutes, 0)
+  const activeObjectives = objectives.filter((objective) => objective.status === 'active').length
+  const openTasks = tasks.filter((task) => task.status !== 'completed' && task.status !== 'skipped').length
+  const atRisk = weekGoals.some((goal) => goal.status === 'at-risk')
+  const status = !weekGoals.length ? 'ATTENTION' : completedGoals === weekGoals.length ? 'COMPLETED' : atRisk || (progress < 35 && openTasks > activeObjectives) ? 'AT_RISK' : progress >= 65 ? 'ON_TRACK' : 'ATTENTION'
+  const message = !weekGoals.length ? 'Define one outcome per priority objective to make the week visible.' : status === 'COMPLETED' ? 'Your planned outcomes are complete. Protect the momentum with a small review.' : status === 'AT_RISK' ? 'Reduce the plan to the smallest outcomes that still matter.' : status === 'ON_TRACK' ? 'Your progress is aligned with the week. Keep the next action small.' : 'You have progress, but one more concrete result would stabilize the week.'
+  return { status, label: status === 'ON_TRACK' ? 'On track' : status === 'AT_RISK' ? 'At risk' : status === 'COMPLETED' ? 'Completed' : 'Attention', progress, completedGoals, totalGoals: weekGoals.length, plannedMinutes, actualMinutes, message }
 }
 
 export function calculateWeekHealth(scorecard: Scorecard) {

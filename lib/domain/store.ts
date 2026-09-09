@@ -7,6 +7,9 @@ import { currentContextKey } from '@/lib/dates'
 
 interface AdaptiveActions {
   addObjective: (objective: Objective) => void
+  updateObjective: (id: string, patch: Partial<Objective>) => void
+  addWeeklyGoal: (goal: import('./types').WeeklyGoal) => void
+  updateWeeklyGoal: (id: string, patch: Partial<import('./types').WeeklyGoal>) => void
   addTask: (task: AdaptiveTask) => void
   updateTask: (id: string, patch: Partial<AdaptiveTask>) => void
   setContext: (context: DailyContext) => void
@@ -20,6 +23,9 @@ export const useAdaptiveOS = create<OSState & AdaptiveActions>()(
     (set) => ({
       ...DEFAULT_STATE,
       addObjective: (objective) => set((state) => ({ objectives: [...state.objectives, objective] })),
+      updateObjective: (id, patch) => set((state) => ({ objectives: state.objectives.map((item) => item.id === id ? { ...item, ...patch } : item) })),
+      addWeeklyGoal: (goal) => set((state) => ({ weeklyGoals: [...state.weeklyGoals, goal] })),
+      updateWeeklyGoal: (id, patch) => set((state) => ({ weeklyGoals: state.weeklyGoals.map((item) => item.id === id ? { ...item, ...patch } : item) })),
       addTask: (task) => set((state) => ({ tasks: [...state.tasks, task] })),
       updateTask: (id, patch) => set((state) => ({ tasks: state.tasks.map((task) => task.id === id ? { ...task, ...patch } : task) })),
       setContext: (context) => set((state) => ({ contexts: { ...state.contexts, [context.date]: context } })),

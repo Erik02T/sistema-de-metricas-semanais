@@ -2,6 +2,7 @@ export type AreaId = 'japanese' | 'programming' | 'university'
 export type EnergyLevel = 'low' | 'medium' | 'high'
 export type TaskStatus = 'backlog' | 'todo' | 'in-progress' | 'blocked' | 'completed' | 'skipped'
 export type GoalStatus = 'planned' | 'active' | 'at-risk' | 'completed'
+export type WeekHealthStatus = 'ON_TRACK' | 'ATTENTION' | 'AT_RISK' | 'COMPLETED'
 
 export interface Objective {
   id: string
@@ -80,6 +81,17 @@ export interface WeeklyReview {
   lessons: string
   nextWeekDecision: string
   updatedAt: string
+}
+
+export interface WeekHealth {
+  status: WeekHealthStatus
+  label: string
+  progress: number
+  completedGoals: number
+  totalGoals: number
+  plannedMinutes: number
+  actualMinutes: number
+  message: string
 }
 
 export interface Scorecard {
