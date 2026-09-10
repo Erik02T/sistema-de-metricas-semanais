@@ -22,6 +22,7 @@ export function FocusWorkspace() {
   const [elapsed, setElapsed] = useState(0)
   const [result, setResult] = useState('')
   const [energyAfter, setEnergyAfter] = useState<EnergyLevel>('medium')
+  const [cancelReason, setCancelReason] = useState('')
   const contextKey = currentContextKey(context.timezone)
   const recommendations = useMemo(() => getRecommendedTasks(state.tasks, context), [state.tasks, context])
   const activeBlock = state.blocks.find((block) => block.date === context.date && block.status === 'active')
@@ -56,9 +57,10 @@ export function FocusWorkspace() {
   function finish(status: 'completed' | 'cancelled') {
     if (!activeBlock) return
     const actualMinutes = Math.max(1, Math.round(elapsed / 60))
-    state.updateBlock(activeBlock.id, { status, actualMinutes, energyAfter, result: result.trim() })
+    state.updateBlock(activeBlock.id, { status, actualMinutes, energyAfter, result: status === 'cancelled' ? cancelReason.trim() : result.trim() })
     if (activeTask) state.updateTask(activeTask.id, status === 'completed' ? { status: 'completed', completedAt: new Date().toISOString(), evidence: result.trim() } : { status: 'todo' })
     setResult('')
+    setCancelReason('')
     setElapsed(0)
   }
 
@@ -73,7 +75,9 @@ export function FocusWorkspace() {
           <label className="flex flex-col gap-2 text-sm">Available minutes<Input type="number" min="5" value={context.availableMinutes} onChange={(event) => updateContext({ availableMinutes: Number(event.target.value) || 5 })} /></label>
           <label className="flex flex-col gap-2 text-sm">Focus window<Input type="number" min="5" value={context.focusMinutes} onChange={(event) => updateContext({ focusMinutes: Number(event.target.value) || 5 })} /></label>
           <div><p className="mb-2 text-sm">Energy available</p><div className="flex gap-2">{energyLevels.map((energy) => <Button key={energy} size="sm" variant={context.energy === energy ? 'default' : 'outline'} onClick={() => updateContext({ energy })}>{energy}</Button>)}</div></div>
+          <label className="flex flex-col gap-2 text-sm">Commitment pressure<select value={context.commitmentPressure} onChange={(event) => updateContext({ commitmentPressure: event.target.value as DailyContext['commitmentPressure'] })} className="h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></label>
           <Textarea value={context.commitments} onChange={(event) => updateContext({ commitments: event.target.value })} placeholder="Constraints or commitments today..." />
+          <Button variant="outline" onClick={() => { const ids = state.tasks.filter((task) => !['completed', 'skipped'].includes(task.status)).map((task) => task.id); state.replanTasks(ids, 'My day changed and the remaining capacity was recalculated.') }}>My day changed — replan remaining</Button>
         </CardContent>
       </Card>
       <Card className="border-primary/30 bg-primary/[0.04]">
@@ -81,6 +85,6 @@ export function FocusWorkspace() {
         <CardContent><p className="text-sm leading-6 text-muted-foreground">{activeBlock ? 'This focus block is active. Protect the window and record what happened when you finish.' : top ? `Fits ${context.availableMinutes} minutes and ${context.energy} energy.` : 'Capture an action or increase your available minutes.'}</p><div className="mt-5 flex flex-wrap items-center gap-2"><Badge variant="outline">{top?.task.estimatedMinutes || 0} min</Badge><Badge variant="outline">{top?.task.energyRequired || '—'} energy</Badge>{!activeBlock && <Button onClick={start} disabled={!top}><Play data-icon="inline-start" />Start focus block</Button>}</div></CardContent>
       </Card>
     </div>
-    {activeBlock && <Card className="border-primary/50"><CardContent className="flex flex-col gap-6 py-6"><div className="flex flex-wrap items-center justify-between gap-3"><div><Badge>Active focus block</Badge><h2 className="mt-2 font-heading text-xl font-semibold">{activeTask?.title}</h2></div><div className="font-mono text-4xl font-semibold tracking-wider text-primary">{minutes}:{seconds}</div></div><div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => setElapsed((value) => Math.max(0, value - 60))}><Pause data-icon="inline-start" />Pause minute</Button><Button variant="outline" onClick={() => setElapsed(0)}><RotateCcw data-icon="inline-start" />Reset timer</Button></div><Textarea value={result} onChange={(event) => setResult(event.target.value)} placeholder="What concrete result will prove this block was useful?" /><div><p className="mb-2 text-sm">Energy after</p><div className="flex gap-2">{energyLevels.map((energy) => <Button key={energy} size="sm" variant={energyAfter === energy ? 'default' : 'outline'} onClick={() => setEnergyAfter(energy)}>{energy}</Button>)}</div></div><div className="flex flex-wrap gap-2"><Button onClick={() => finish('completed')}><Check data-icon="inline-start" />Complete block</Button><Button variant="outline" onClick={() => finish('cancelled')}><Square data-icon="inline-start" />Cancel block</Button></div></CardContent></Card>}
+    {activeBlock && <Card className="border-primary/50"><CardContent className="flex flex-col gap-6 py-6"><div className="flex flex-wrap items-center justify-between gap-3"><div><Badge>Active focus block</Badge><h2 className="mt-2 font-heading text-xl font-semibold">{activeTask?.title}</h2></div><div className="font-mono text-4xl font-semibold tracking-wider text-primary">{minutes}:{seconds}</div></div><div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => setElapsed((value) => Math.max(0, value - 60))}><Pause data-icon="inline-start" />Pause minute</Button><Button variant="outline" onClick={() => setElapsed(0)}><RotateCcw data-icon="inline-start" />Reset timer</Button></div><Textarea value={result} onChange={(event) => setResult(event.target.value)} placeholder="What concrete result will prove this block was useful?" /><Textarea value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} placeholder="If you cancel or skip, why?" /><div><p className="mb-2 text-sm">Energy after</p><div className="flex gap-2">{energyLevels.map((energy) => <Button key={energy} size="sm" variant={energyAfter === energy ? 'default' : 'outline'} onClick={() => setEnergyAfter(energy)}>{energy}</Button>)}</div></div><div className="flex flex-wrap gap-2"><Button onClick={() => finish('completed')}><Check data-icon="inline-start" />Complete block</Button><Button variant="outline" onClick={() => finish('cancelled')}><Square data-icon="inline-start" />Cancel block</Button></div></CardContent></Card>}
   </div>
 }
