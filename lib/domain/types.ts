@@ -4,6 +4,14 @@ export type TaskStatus = 'backlog' | 'todo' | 'in-progress' | 'blocked' | 'compl
 export type GoalStatus = 'planned' | 'active' | 'at-risk' | 'completed'
 export type WeekHealthStatus = 'ON_TRACK' | 'ATTENTION' | 'AT_RISK' | 'COMPLETED'
 
+export interface Area {
+  id: AreaId
+  label: string
+  description: string
+  weeklyMinutes: number
+  status: 'active' | 'paused'
+}
+
 export interface Objective {
   id: string
   title: string
@@ -123,6 +131,7 @@ export interface OSPreferences {
 export interface OSState {
   version: number
   preferences: OSPreferences
+  areas: Area[]
   objectives: Objective[]
   weeklyGoals: WeeklyGoal[]
   tasks: AdaptiveTask[]
@@ -131,6 +140,12 @@ export interface OSState {
   reviews: Record<string, WeeklyReview>
   legacyImported: boolean
 }
+
+export const DEFAULT_AREAS: Area[] = [
+  { id: 'japanese', label: 'Japanese', description: 'Comprehension and expression.', weeklyMinutes: 180, status: 'active' },
+  { id: 'programming', label: 'Programming', description: 'Problem solving and software foundations.', weeklyMinutes: 240, status: 'active' },
+  { id: 'university', label: 'University', description: 'Requirements and academic progress.', weeklyMinutes: 120, status: 'active' },
+]
 
 export const DEFAULT_OBJECTIVES: Objective[] = [
   { id: 'obj-japanese', title: 'Become conversational in Japanese', description: 'Build practical comprehension and expression through consistent exposure.', areaId: 'japanese', why: 'Communicate with confidence and understand real Japanese.', priority: 1, status: 'active', createdAt: '2026-01-01T00:00:00.000Z' },
@@ -144,4 +159,4 @@ export const DEFAULT_TASKS: AdaptiveTask[] = [
   { id: 'task-university', title: 'Advance the next university requirement', description: 'Identify the next concrete deliverable and move it forward.', areaId: 'university', objectiveId: 'obj-university', status: 'backlog', priority: 3, estimatedMinutes: 60, minimumMinutes: 20, energyRequired: 'high', nextAction: 'Open the requirement and define the next submission step.', createdAt: '2026-01-01T00:00:00.000Z' },
 ]
 
-export const DEFAULT_STATE: OSState = { version: 2, preferences: { timezone: 'UTC', focusDefaultMinutes: 30, weekStartsMonday: true }, objectives: DEFAULT_OBJECTIVES, weeklyGoals: [], tasks: DEFAULT_TASKS, contexts: {}, blocks: [], reviews: {}, legacyImported: false }
+export const DEFAULT_STATE: OSState = { version: 3, preferences: { timezone: 'UTC', focusDefaultMinutes: 30, weekStartsMonday: true }, areas: DEFAULT_AREAS, objectives: DEFAULT_OBJECTIVES, weeklyGoals: [], tasks: DEFAULT_TASKS, contexts: {}, blocks: [], reviews: {}, legacyImported: false }

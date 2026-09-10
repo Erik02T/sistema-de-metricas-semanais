@@ -2,10 +2,12 @@
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { DEFAULT_STATE, type AdaptiveTask, type DailyContext, type FocusBlock, type Objective, type OSState, type WeeklyReview, type OSPreferences } from './types'
+import { DEFAULT_STATE, DEFAULT_AREAS, type AdaptiveTask, type DailyContext, type FocusBlock, type Objective, type OSState, type WeeklyReview, type OSPreferences } from './types'
 import { currentContextKey } from '@/lib/dates'
 
 interface AdaptiveActions {
+  addArea: (area: import('./types').Area) => void
+  updateArea: (id: string, patch: Partial<import('./types').Area>) => void
   addObjective: (objective: Objective) => void
   updateObjective: (id: string, patch: Partial<Objective>) => void
   addWeeklyGoal: (goal: import('./types').WeeklyGoal) => void
@@ -25,6 +27,8 @@ export const useAdaptiveOS = create<OSState & AdaptiveActions>()(
   persist(
     (set) => ({
       ...DEFAULT_STATE,
+      addArea: (area) => set((state) => ({ areas: [...state.areas, area] })),
+      updateArea: (id, patch) => set((state) => ({ areas: state.areas.map((area) => area.id === id ? { ...area, ...patch } : area) })),
       addObjective: (objective) => set((state) => ({ objectives: [...state.objectives, objective] })),
       updateObjective: (id, patch) => set((state) => ({ objectives: state.objectives.map((item) => item.id === id ? { ...item, ...patch } : item) })),
       addWeeklyGoal: (goal) => set((state) => ({ weeklyGoals: [...state.weeklyGoals, goal] })),
@@ -36,7 +40,7 @@ export const useAdaptiveOS = create<OSState & AdaptiveActions>()(
       updateBlock: (id, patch) => set((state) => ({ blocks: state.blocks.map((block) => block.id === id ? { ...block, ...patch } : block) })),
       setReview: (review) => set((state) => ({ reviews: { ...state.reviews, [review.weekId]: review } })),
       setPreferences: (preferences) => set((state) => ({ preferences: { ...state.preferences, ...preferences } })),
-      replaceState: (nextState) => set(() => ({ ...DEFAULT_STATE, ...nextState, version: 2 })),
+      replaceState: (nextState) => set(() => ({ ...DEFAULT_STATE, ...nextState, version: 3 })),
       resetState: () => set(() => ({ ...DEFAULT_STATE })),
     }),
     {
@@ -44,7 +48,7 @@ export const useAdaptiveOS = create<OSState & AdaptiveActions>()(
       version: 2,
       migrate: (persisted) => {
         const state = persisted as Partial<OSState>
-        return { ...DEFAULT_STATE, ...state, preferences: { ...DEFAULT_STATE.preferences, ...(state.preferences || {}) }, version: 2, legacyImported: true }
+        return { ...DEFAULT_STATE, ...state, preferences: { ...DEFAULT_STATE.preferences, ...(state.preferences || {}) }, areas: state.areas || DEFAULT_AREAS, version: 3, legacyImported: true }
       },
     },
   ),

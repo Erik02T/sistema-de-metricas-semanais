@@ -2,19 +2,24 @@ import type { AdaptiveTask, DailyContext, EnergyLevel, Recommendation, Scorecard
 
 const ENERGY_RANK: Record<EnergyLevel, number> = { low: 1, medium: 2, high: 3 }
 
-export function calculateTaskScore(task: AdaptiveTask, context: DailyContext, today = new Date()) {
+export function calculateTaskScore(task: AdaptiveTask, context: DailyContext, today = new Date(), signals: { completedAreaCount?: number; totalAreaCount?: number; recentAreaMinutes?: number; overdue?: boolean } = {}) {
   if (task.status === 'completed' || task.status === 'skipped') return -Infinity
   const fit = task.estimatedMinutes <= context.availableMinutes ? 24 : task.minimumMinutes <= context.availableMinutes ? 12 : -25
   const energyFit = ENERGY_RANK[task.energyRequired] <= ENERGY_RANK[context.energy] ? 18 : -18
   const urgency = task.dueDate ? Math.max(0, 20 - Math.ceil((new Date(`${task.dueDate}T12:00:00Z`).getTime() - today.getTime()) / 86400000)) : 0
   const priority = Math.max(0, 20 - task.priority * 4)
-  const focusFit = task.estimatedMinutes <= context.focusMinutes ? 10 : 0
-  return fit + energyFit + urgency + priority + focusFit
+  const focusFit = task.estimatedMinutes <= context.focusMinutes ? 10 : task.minimumMinutes <= context.focusMinutes ? 4 : -6
+  const overdue = signals.overdue || (task.dueDate ? new Date(`${task.dueDate}T23:59:59Z`) < today : false)
+  const overduePressure = overdue ? 18 : 0
+  const balance = signals.totalAreaCount && signals.completedAreaCount !== undefined && signals.completedAreaCount < signals.totalAreaCount ? 8 : 0
+  const neglectedArea = signals.recentAreaMinutes !== undefined && signals.recentAreaMinutes < 30 ? 7 : 0
+  const frequency = task.status === 'in-progress' ? 5 : 0
+  return fit + energyFit + urgency + priority + focusFit + overduePressure + balance + neglectedArea + frequency
 }
 
-export function getRecommendedTasks(tasks: AdaptiveTask[], context: DailyContext): Recommendation[] {
+export function getRecommendedTasks(tasks: AdaptiveTask[], context: DailyContext, history: { completedAreaCount?: number; totalAreaCount?: number; areaMinutes?: Record<string, number> } = {}): Recommendation[] {
   return tasks
-    .map((task) => ({ task, score: calculateTaskScore(task, context), reason: buildReason(task, context), alternativeMinutes: Math.min(task.minimumMinutes, context.availableMinutes), alternativeReason: task.minimumMinutes <= context.availableMinutes ? `Start with the ${task.minimumMinutes}-minute minimum version.` : 'Choose a smaller task that fits your current window.' }))
+    .map((task) => ({ task, score: calculateTaskScore(task, context, new Date(), { ...history, recentAreaMinutes: history.areaMinutes?.[task.areaId] }), reason: buildReason(task, context), alternativeMinutes: Math.min(task.minimumMinutes, context.availableMinutes), alternativeReason: task.minimumMinutes <= context.availableMinutes ? `Start with the ${task.minimumMinutes}-minute minimum version.` : 'Choose a smaller task that fits your current window.' }))
     .filter((item) => item.score > -Infinity)
     .sort((a, b) => b.score - a.score)
 }
