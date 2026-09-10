@@ -2,12 +2,12 @@
 // The first adaptive slice intentionally composes several legacy primitives while the domain settles.
 // @ts-nocheck
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ArrowRight, Check, Clock3, Flame, Gauge, Plus, Sparkles, Target, Timer, Zap } from 'lucide-react'
 import { useAdaptiveOS, defaultDailyContext } from '@/lib/domain/store'
 import { buildDailyPlan, calculateWeekHealth, getRecommendedTasks } from '@/lib/domain/planning'
 import { currentContextKey, formatToday } from '@/lib/dates'
-import type { AreaId, EnergyLevel } from '@/lib/domain/types'
+import type { AreaId, DailyContext, EnergyLevel } from '@/lib/domain/types'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -30,8 +30,22 @@ const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
 export function AdaptiveOS() {
   const [active, setActive] = useState<string>('dashboard')
-  const [context, setContext] = useState(defaultDailyContext)
+  // Keep the first render deterministic; the browser timezone is applied after hydration.
+  const [context, setContext] = useState<DailyContext>(() => ({
+    date: '1970-01-01',
+    weekId: '1970-W01',
+    timezone: 'UTC',
+    availableMinutes: 30,
+    energy: 'medium' as const,
+    focusMinutes: 30,
+    commitments: '',
+  }))
   const state = useAdaptiveOS()
+  useEffect(() => {
+    const next = defaultDailyContext()
+    setContext(next)
+    state.setContext(next)
+  }, [])
   const contextKey = currentContextKey(context.timezone)
   const recommendations = useMemo(() => getRecommendedTasks(state.tasks, context), [state.tasks, context])
   const plan = useMemo(() => buildDailyPlan(state.tasks, context), [state.tasks, context])
