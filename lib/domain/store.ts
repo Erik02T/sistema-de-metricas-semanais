@@ -2,7 +2,7 @@
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { DEFAULT_STATE, type AdaptiveTask, type DailyContext, type FocusBlock, type Objective, type OSState, type WeeklyReview } from './types'
+import { DEFAULT_STATE, type AdaptiveTask, type DailyContext, type FocusBlock, type Objective, type OSState, type WeeklyReview, type OSPreferences } from './types'
 import { currentContextKey } from '@/lib/dates'
 
 interface AdaptiveActions {
@@ -16,6 +16,9 @@ interface AdaptiveActions {
   addBlock: (block: FocusBlock) => void
   updateBlock: (id: string, patch: Partial<FocusBlock>) => void
   setReview: (review: WeeklyReview) => void
+  setPreferences: (preferences: Partial<OSPreferences>) => void
+  replaceState: (state: OSState) => void
+  resetState: () => void
 }
 
 export const useAdaptiveOS = create<OSState & AdaptiveActions>()(
@@ -32,13 +35,16 @@ export const useAdaptiveOS = create<OSState & AdaptiveActions>()(
       addBlock: (block) => set((state) => ({ blocks: [block, ...state.blocks] })),
       updateBlock: (id, patch) => set((state) => ({ blocks: state.blocks.map((block) => block.id === id ? { ...block, ...patch } : block) })),
       setReview: (review) => set((state) => ({ reviews: { ...state.reviews, [review.weekId]: review } })),
+      setPreferences: (preferences) => set((state) => ({ preferences: { ...state.preferences, ...preferences } })),
+      replaceState: (nextState) => set(() => ({ ...DEFAULT_STATE, ...nextState, version: 2 })),
+      resetState: () => set(() => ({ ...DEFAULT_STATE })),
     }),
     {
       name: 'kessho-adaptive-os',
-      version: 1,
+      version: 2,
       migrate: (persisted) => {
         const state = persisted as Partial<OSState>
-        return { ...DEFAULT_STATE, ...state, version: 1, legacyImported: true }
+        return { ...DEFAULT_STATE, ...state, preferences: { ...DEFAULT_STATE.preferences, ...(state.preferences || {}) }, version: 2, legacyImported: true }
       },
     },
   ),

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Check, RotateCcw, Settings2 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -9,13 +9,41 @@ import { useAdaptiveOS } from '@/lib/domain/store'
 
 export function SettingsPanel() {
   const state = useAdaptiveOS()
-  const [timezone, setTimezone] = useState(() => Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC')
+  const fileInput = useRef<HTMLInputElement>(null)
   const [saved, setSaved] = useState(false)
-  const [focusDefault, setFocusDefault] = useState(30)
-  const [weekStartsMonday, setWeekStartsMonday] = useState(true)
+  const [timezone, setTimezone] = useState(state.preferences.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC')
+  const [focusDefault, setFocusDefault] = useState(state.preferences.focusDefaultMinutes)
+  const [weekStartsMonday, setWeekStartsMonday] = useState(state.preferences.weekStartsMonday)
   const existingData = useMemo(() => state.objectives.length + state.weeklyGoals.length + state.tasks.length + state.blocks.length, [state])
 
+  function exportData() {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = `kessho-backup-${new Date().toISOString().slice(0, 10)}.json`
+    anchor.click()
+    URL.revokeObjectURL(url)
+  }
+
+  function importData(file: File) {
+    const reader = new FileReader()
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(String(reader.result))
+        if (!parsed || !Array.isArray(parsed.objectives) || !Array.isArray(parsed.tasks)) throw new Error('Invalid backup')
+        state.replaceState(parsed)
+        setSaved(true)
+        window.setTimeout(() => setSaved(false), 1800)
+      } catch {
+        window.alert('This file is not a valid KESSHŌ backup.')
+      }
+    }
+    reader.readAsText(file)
+  }
+
   function save() {
+    state.setPreferences({ timezone, focusDefaultMinutes: Math.max(5, Math.min(180, focusDefault)), weekStartsMonday })
     setSaved(true)
     window.setTimeout(() => setSaved(false), 1800)
   }
@@ -39,7 +67,7 @@ export function SettingsPanel() {
         </Card>
         <Card>
           <CardHeader><CardTitle className="text-lg">Local data</CardTitle><CardDescription>Your current prototype remains offline-first while backend persistence is still a separate phase.</CardDescription></CardHeader>
-          <CardContent className="flex flex-col gap-4"><div className="flex items-center justify-between"><span className="text-sm text-muted-foreground">Records stored locally</span><Badge variant="outline">{existingData}</Badge></div><p className="text-sm leading-6 text-muted-foreground">Objectives, goals, actions, blocks and reviews are stored in this browser. The migration does not delete the legacy workspace.</p><Button variant="outline" onClick={() => window.location.reload()}><RotateCcw data-icon="inline-start" />Reload local state</Button></CardContent>
+          <CardContent className="flex flex-col gap-4"><div className="flex items-center justify-between"><span className="text-sm text-muted-foreground">Records stored locally</span><Badge variant="outline">{existingData}</Badge></div><p className="text-sm leading-6 text-muted-foreground">Objectives, goals, actions, blocks and reviews are stored in this browser. The migration does not delete the legacy workspace.</p><div className="flex flex-wrap gap-2"><Button variant="outline" onClick={exportData}>Export backup</Button><Button variant="outline" onClick={() => fileInput.current?.click()}>Import backup</Button><input ref={fileInput} type="file" accept="application/json" className="hidden" onChange={(event) => { const file = event.target.files?.[0]; if (file) importData(file); event.currentTarget.value = '' }} /><Button variant="outline" onClick={() => window.location.reload()}><RotateCcw data-icon="inline-start" />Reload local state</Button></div><Button variant="destructive" onClick={() => { if (window.confirm('Reset all local KESSHŌ data?')) state.resetState() }}>Reset local workspace</Button></CardContent>
         </Card>
       </div>
     </div>

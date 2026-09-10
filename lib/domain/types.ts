@@ -114,8 +114,15 @@ export interface Recommendation {
   alternativeReason: string
 }
 
+export interface OSPreferences {
+  timezone: string
+  focusDefaultMinutes: number
+  weekStartsMonday: boolean
+}
+
 export interface OSState {
   version: number
+  preferences: OSPreferences
   objectives: Objective[]
   weeklyGoals: WeeklyGoal[]
   tasks: AdaptiveTask[]
@@ -137,4 +144,4 @@ export const DEFAULT_TASKS: AdaptiveTask[] = [
   { id: 'task-university', title: 'Advance the next university requirement', description: 'Identify the next concrete deliverable and move it forward.', areaId: 'university', objectiveId: 'obj-university', status: 'backlog', priority: 3, estimatedMinutes: 60, minimumMinutes: 20, energyRequired: 'high', nextAction: 'Open the requirement and define the next submission step.', createdAt: '2026-01-01T00:00:00.000Z' },
 ]
 
-export const DEFAULT_STATE: OSState = { version: 1, objectives: DEFAULT_OBJECTIVES, weeklyGoals: [], tasks: DEFAULT_TASKS, contexts: {}, blocks: [], reviews: {}, legacyImported: false }
+export const DEFAULT_STATE: OSState = { version: 2, preferences: { timezone: 'UTC', focusDefaultMinutes: 30, weekStartsMonday: true }, objectives: DEFAULT_OBJECTIVES, weeklyGoals: [], tasks: DEFAULT_TASKS, contexts: {}, blocks: [], reviews: {}, legacyImported: false }
